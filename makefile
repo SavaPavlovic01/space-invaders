@@ -4,7 +4,8 @@ c_files= src/Window.cpp \
 src/game.cpp \
 src/Texture.cpp \
 src/Entity.cpp \
-src/Enemy.cpp
+src/Enemy.cpp \
+src/Player.cpp
 
 h_files=$(addprefix inc/,$(notdir $(c_files:.cpp=.hpp)))
 

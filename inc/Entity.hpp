@@ -19,6 +19,8 @@ class Entity {
 
     virtual void draw() {};
 
+    virtual void redraw() {};
+
     virtual void move(int x, int y) {};
 
     int get_w(){return cur_pos.w;}

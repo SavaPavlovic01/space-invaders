@@ -52,22 +52,40 @@ void Window::handle_mouse(SDL_Event& event){
 }
 
 void Window::handle_keyboard(SDL_Event& event){
-    
+    switch (event.key.keysym.sym)
+    {
+    case SDLK_LEFT:
+        if(player->get_x() - player_movement <= 0) return;
+        player->move(-player_movement,0);
+        player->draw();
+        draw_enemys();
+        draw_scene();
+        break;
+    case SDLK_RIGHT:
+        if(player->get_x() + player_movement >= width) return;
+        player->move(player_movement,0);  
+        player->draw(); 
+        draw_enemys(); 
+        draw_scene();
+    default:
+        break;
+    }    
 }
 
 void Window::loop(){
     SDL_Event event;
-    tick_cnt = SDL_GetTicks();
+    tick_cnt = 0;
     while(!quit){
         if(get_event(event))
             handle_event(event);
-        if(SDL_GetTicks()-tick_cnt>400){
+        if(SDL_GetTicks()-tick_cnt>600){
             tick_cnt = SDL_GetTicks();
+            update_scene();
             for(auto entity:enemys){
                 entity->draw();
             }
+            player->draw();
             draw_scene();            
-            update_scene();
         }
     }
 }
@@ -80,6 +98,7 @@ void Window::draw_scene(){
 
 void Window::init_game(){
     sprite_sheet = new Texture("images/sheet.png",get_renderer());
+    player = new Player(*sprite_sheet,(SDL_Rect){width/2-32,height-70,64,32});
     SDL_Rect pos = {5,5,32,32};
     for(int i = 0; i<11;i++){
         for(int j = 0;j<5;j++){
@@ -112,5 +131,12 @@ void Window::update_scene(){
     int offsetY = (going_down)? 32:0;
     for(auto entity: enemys){
         entity->move(offsetX,offsetY);
+    }
+    
+}
+
+void Window::draw_enemys(){
+    for(auto entity: enemys){
+        entity->redraw();
     }
 }

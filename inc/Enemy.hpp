@@ -22,6 +22,8 @@ class Enemy : public Entity{
 
     void draw() override;
 
+    void redraw() override;
+
 };
 
 #endif

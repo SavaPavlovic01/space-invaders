@@ -9,6 +9,7 @@
 #include <SDL_image.h>
 #include <SDL_ttf.h>
 #include "Entity.hpp"
+#include "Player.hpp"
 
 class Window {
     
@@ -27,8 +28,11 @@ class Window {
     int enemy_x_distance = 40;
     int enemy_y_distance = 40;
 
+    int player_movement = 10;
+
     uint32_t tick_cnt = 0;
-    std::vector<Entity*> enemys;    
+    std::vector<Entity*> enemys; 
+    Player* player = nullptr;   
 
     void handle_mouse(SDL_Event&);
     
@@ -36,6 +40,7 @@ class Window {
 
     void handle_quit(SDL_Event&);
 
+    void draw_enemys();
     
     public:
 
