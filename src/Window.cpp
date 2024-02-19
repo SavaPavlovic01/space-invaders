@@ -120,17 +120,25 @@ void Window::loop(){
         if(SDL_GetTicks()-bullet_update_tick > 2){
             bool hit = false;
             //enemy bullets
-            for(auto iterator = enemy_bulltets.begin();iterator!=enemy_bulltets.end();iterator++){
+            for(auto iterator = enemy_bulltets.begin();iterator!=enemy_bulltets.end();){
+                bool deleted = false;
                 if(player->bullet_hit_player(*iterator)) game_over = true;
+                //if(!(*iterator)) continue;
                 if(test_square){
                     if(test_square->bullet_touching(*iterator)){
-                        test_square->take_damage();
+                        if(test_square->take_damage()){
+                            delete test_square;
+                            test_square = nullptr;
+                        }
                         Bullet* temp = *iterator;
-                        enemy_bulltets.erase(iterator);
-                        delete temp;
+                        iterator = enemy_bulltets.erase(iterator);
+                        deleted = true;
+                        //delete temp;
+                        //continue;
                     }
                 }
-                (*iterator)->move(0, bullet_movement);
+                if(!deleted)(*iterator)->move(0, bullet_movement);
+                if(!deleted) iterator++;
             }
             //player bullet
             if(player_bullet){
@@ -149,10 +157,10 @@ void Window::loop(){
                     if((*iterator)->bullet_touching(player_bullet)) {
                         if((*iterator)->take_damage()){
                             dying_enemy = (*iterator);
-                            enemys.erase(iterator);
+                            iterator = enemys.erase(iterator);
                             hit = true;
                             break;
-                        }   
+                        } 
                     }
                 }
                 if(player_bullet->get_y() - 10 <=0) {
@@ -191,7 +199,7 @@ void Window::init_game(){
     paused = false;
     game_over = false;
     sprite_sheet = new Texture("images/sheet.png",get_renderer());
-    test_square = new Square(*sprite_sheet,(SDL_Rect){20,500,32,32},5);
+    test_square = new Square(*sprite_sheet,(SDL_Rect){width/2,400,32,32},5);
     player = new Player(*sprite_sheet,(SDL_Rect){width/2-32,height-70,64,32});
     SDL_Rect pos = {5,5,32,32};
     for(int i = 0; i<11;i++){
