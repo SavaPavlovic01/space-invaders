@@ -18,6 +18,8 @@ class Texture {
 
     void render(SDL_Rect* clip, SDL_Rect* canvas);
     
+    SDL_Renderer* get_renderer() {return renderer;}
+    
 };
 
 #endif

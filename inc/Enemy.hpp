@@ -8,14 +8,15 @@ class Enemy : public Entity{
 
     protected:
 
-    uint8_t hp=1;
+    
     int enemy_width = 32;
     int enemy_height = 32;
+    SDL_Rect death_frame = (SDL_Rect){103,0,8,8};
 
     public:
 
-    Enemy(Texture& texture,SDL_Rect pos, int hp):Entity(texture,pos){
-        this->hp = hp;
+    Enemy(Texture& texture,SDL_Rect pos, int hp):Entity(texture,pos,hp){
+
     }
 
     void move(int x, int y) override;
@@ -23,6 +24,8 @@ class Enemy : public Entity{
     void draw() override;
 
     void redraw() override;
+   
+    virtual bool shoot() {};
 
 };
 

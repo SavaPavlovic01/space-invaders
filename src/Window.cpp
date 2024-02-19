@@ -4,6 +4,7 @@
 #include <iostream>
 #include "../inc/EnemyBack.hpp"
 #include "../inc/EnemyMiddle.hpp"
+#include <time.h>
 
 
 void Window::init(){
@@ -48,25 +49,44 @@ void Window::handle_quit(SDL_Event& event){
 }
 
 void Window::handle_mouse(SDL_Event& event){
-
+    //std::cout<<"CLICK"<<std::endl;
+    if(player_bullet != nullptr) return;
+    SDL_Rect bullet_pos = {0,0,0,0};
+    bullet_pos.x = player->get_x() + player->get_w()/2;
+    bullet_pos.y = player->get_y() - 8;
+    bullet_pos.w = bullet_width;
+    bullet_pos.h = bullet_height;
+    player_bullet = new Bullet(*sprite_sheet,bullet_pos);
 }
 
 void Window::handle_keyboard(SDL_Event& event){
     switch (event.key.keysym.sym)
     {
     case SDLK_LEFT:
+        if(paused || game_over) return;
         if(player->get_x() - player_movement <= 0) return;
         player->move(-player_movement,0);
-        player->draw();
         draw_enemys();
         draw_scene();
         break;
     case SDLK_RIGHT:
-        if(player->get_x() + player_movement >= width) return;
+        if(paused || game_over) return;
+        if(player->get_x() + player_movement + player->get_w() >= width) return;
         player->move(player_movement,0);  
-        player->draw(); 
         draw_enemys(); 
         draw_scene();
+        break;
+    case SDLK_r:
+        // MEMORY LEAK
+        enemys.clear();
+        enemy_bulltets.clear();
+        if(player_bullet) {delete player_bullet; player_bullet = nullptr;}
+        delete player;
+        init_game();
+        break;
+    case SDLK_p:
+        paused = !paused;
+        break;
     default:
         break;
     }    
@@ -75,18 +95,70 @@ void Window::handle_keyboard(SDL_Event& event){
 void Window::loop(){
     SDL_Event event;
     tick_cnt = 0;
+
+    int bullet_update_tick = 0;
+    int move_enemies_tick = 0;
+    int enemy_shoot_tick = 0;
     while(!quit){
         if(get_event(event))
             handle_event(event);
-        if(SDL_GetTicks()-tick_cnt>600){
-            tick_cnt = SDL_GetTicks();
+        if( paused || game_over) continue;
+        //delete dying_enemy;
+        //dying_enemy = nullptr;
+        if(SDL_GetTicks()-enemy_shoot_tick > 50){
+            for(auto shooter:enemys){
+                if(shooter->shoot()){
+                    int bullet_x = shooter->get_x() + shooter->get_w()/2;
+                    int bullet_y = shooter->get_y() + shooter->get_h();
+                    int wi = bullet_width;
+                    int hi = bullet_height;
+                    enemy_bulltets.push_back(new Bullet(*sprite_sheet,(SDL_Rect){bullet_x,bullet_y,wi,hi}));
+                }
+            }
+            enemy_shoot_tick = SDL_GetTicks();
+        }
+        if(SDL_GetTicks()-bullet_update_tick > 2){
+            bool hit = false;
+            //enemy bullets
+            for(auto bullet:enemy_bulltets){
+                if(player->bullet_hit_player(bullet)) game_over = true;
+                bullet->move(0,bullet_movement);    
+            }
+            //player bullet
+            if(player_bullet){
+                for(auto iterator = enemys.begin();iterator!=enemys.end();iterator++){                    
+                    if((*iterator)->bullet_touching(player_bullet)) {
+                        if((*iterator)->take_damage()){
+                            dying_enemy = (*iterator);
+                            enemys.erase(iterator);
+                            hit = true;
+                            break;
+                        }
+                        
+                    }
+                }
+                if(player_bullet->get_y() - 10 <=0) {
+                    delete player_bullet;
+                    player_bullet = nullptr;
+                }else player_bullet->move(0,-bullet_movement);
+            }
+            bullet_update_tick = SDL_GetTicks();
+            if(hit) {
+                delete player_bullet;
+                player_bullet = nullptr;
+            }
+        }
+        if(SDL_GetTicks()-move_enemies_tick>600){
+            delete dying_enemy;
+            dying_enemy = nullptr;
+            move_enemies_tick = SDL_GetTicks();
             update_scene();
             for(auto entity:enemys){
-                entity->draw();
-            }
-            player->draw();
-            draw_scene();            
+                entity->move_frame();
+            }           
         }
+        draw_enemys();
+        draw_scene();
     }
 }
 
@@ -97,6 +169,9 @@ void Window::draw_scene(){
 }
 
 void Window::init_game(){
+    srand(time(nullptr));
+    paused = false;
+    game_over = false;
     sprite_sheet = new Texture("images/sheet.png",get_renderer());
     player = new Player(*sprite_sheet,(SDL_Rect){width/2-32,height-70,64,32});
     SDL_Rect pos = {5,5,32,32};
@@ -117,6 +192,7 @@ void Window::init_game(){
 
 void Window::update_scene(){
     bool going_down = false;
+    if(enemys.size()==0) init_game();
     Entity* last_enemy = (cur_direction == 1)? enemys.at(enemys.size()-1):enemys.at(0);
     int check =last_enemy->get_x()+ enemy_movment_per_frame*cur_direction;
     check = (cur_direction == 1)? check+last_enemy->get_w():check;
@@ -132,11 +208,18 @@ void Window::update_scene(){
     for(auto entity: enemys){
         entity->move(offsetX,offsetY);
     }
+
     
 }
 
 void Window::draw_enemys(){
+    if(dying_enemy) dying_enemy->draw();
+    player->draw();
+    if(player_bullet) player_bullet->draw();
     for(auto entity: enemys){
         entity->redraw();
+    }
+    for(auto bullet: enemy_bulltets){
+        bullet->draw();
     }
 }

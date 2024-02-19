@@ -7,9 +7,9 @@ class Player : public Entity{
     int hp = 1;
 
     public:
-    Player(Texture& texture, SDL_Rect pos, int hp = 1):Entity(texture, pos){
+    Player(Texture& texture, SDL_Rect pos, int hp = 1):Entity(texture, pos, hp){
         this->hp = hp;
-        frames.push_back((SDL_Rect){112,63,16,8});
+        frames.push_back((SDL_Rect){115,63,11,8});
     }    
 
     void draw() override;
@@ -17,6 +17,10 @@ class Player : public Entity{
     void move(int x, int y) override;
 
     void redraw() override;
+
+    bool shoot() override {return false;}
+
+    bool bullet_hit_player(Entity* bullet);
 };
 
 #endif

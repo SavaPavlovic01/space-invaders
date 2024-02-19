@@ -11,6 +11,8 @@ class EnemyFront : public Enemy {
         frames.push_back((SDL_Rect){0,0,8,8});
         frames.push_back((SDL_Rect){9,0,8,8});
     }
+    
+    bool shoot() override {return false;}
 };
 
 #endif

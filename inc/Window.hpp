@@ -2,7 +2,7 @@
 #define _WINDOW_HPP_
 
 #define SDL_MAIN_HANDLED
-
+#include "Bullet.hpp"
 #include <stdint.h>
 #include <string>
 #include <SDL.h>
@@ -10,6 +10,7 @@
 #include <SDL_ttf.h>
 #include "Entity.hpp"
 #include "Player.hpp"
+#include "EnemyBack.hpp"
 
 class Window {
     
@@ -28,11 +29,22 @@ class Window {
     int enemy_x_distance = 40;
     int enemy_y_distance = 40;
 
-    int player_movement = 10;
+    int player_movement = 20;
 
+    int bullet_movement = 1;
+
+    Entity* dying_enemy = nullptr;
     uint32_t tick_cnt = 0;
     std::vector<Entity*> enemys; 
     Player* player = nullptr;   
+    Bullet* player_bullet = nullptr;
+    std::vector<Bullet*> enemy_bulltets;
+
+    bool game_over = false;
+    bool paused = false;
+
+    int bullet_width = 4;
+    int bullet_height = 16;
 
     void handle_mouse(SDL_Event&);
     
