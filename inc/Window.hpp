@@ -11,6 +11,7 @@
 #include "Entity.hpp"
 #include "Player.hpp"
 #include "EnemyBack.hpp"
+#include "Square.hpp"
 
 class Window {
     
@@ -39,6 +40,8 @@ class Window {
     Player* player = nullptr;   
     Bullet* player_bullet = nullptr;
     std::vector<Bullet*> enemy_bulltets;
+
+    Square* test_square = nullptr;
 
     bool game_over = false;
     bool paused = false;

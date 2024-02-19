@@ -7,7 +7,8 @@ src/Entity.cpp \
 src/Enemy.cpp \
 src/Player.cpp \
 src/Bullet.cpp \
-src/EnemyBack.cpp
+src/EnemyBack.cpp \
+src/Wall.cpp
 
 h_files=$(addprefix inc/,$(notdir $(c_files:.cpp=.hpp)))
 

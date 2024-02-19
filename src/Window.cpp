@@ -103,8 +103,7 @@ void Window::loop(){
         if(get_event(event))
             handle_event(event);
         if( paused || game_over) continue;
-        //delete dying_enemy;
-        //dying_enemy = nullptr;
+        // make enemy bullets
         if(SDL_GetTicks()-enemy_shoot_tick > 50){
             for(auto shooter:enemys){
                 if(shooter->shoot()){
@@ -117,15 +116,35 @@ void Window::loop(){
             }
             enemy_shoot_tick = SDL_GetTicks();
         }
+        // move bullets and check collision
         if(SDL_GetTicks()-bullet_update_tick > 2){
             bool hit = false;
             //enemy bullets
-            for(auto bullet:enemy_bulltets){
-                if(player->bullet_hit_player(bullet)) game_over = true;
-                bullet->move(0,bullet_movement);    
+            for(auto iterator = enemy_bulltets.begin();iterator!=enemy_bulltets.end();iterator++){
+                if(player->bullet_hit_player(*iterator)) game_over = true;
+                if(test_square){
+                    if(test_square->bullet_touching(*iterator)){
+                        test_square->take_damage();
+                        Bullet* temp = *iterator;
+                        enemy_bulltets.erase(iterator);
+                        delete temp;
+                    }
+                }
+                (*iterator)->move(0, bullet_movement);
             }
             //player bullet
             if(player_bullet){
+                // check barrier
+                if(test_square){                
+                    if(test_square->bullet_touching(player_bullet)){
+                        hit = true;
+                        if(test_square->take_damage()){
+                            delete test_square;
+                            test_square = nullptr;
+                        }
+                    }
+                }
+                // check enemies
                 for(auto iterator = enemys.begin();iterator!=enemys.end();iterator++){                    
                     if((*iterator)->bullet_touching(player_bullet)) {
                         if((*iterator)->take_damage()){
@@ -133,8 +152,7 @@ void Window::loop(){
                             enemys.erase(iterator);
                             hit = true;
                             break;
-                        }
-                        
+                        }   
                     }
                 }
                 if(player_bullet->get_y() - 10 <=0) {
@@ -173,6 +191,7 @@ void Window::init_game(){
     paused = false;
     game_over = false;
     sprite_sheet = new Texture("images/sheet.png",get_renderer());
+    test_square = new Square(*sprite_sheet,(SDL_Rect){20,500,32,32},5);
     player = new Player(*sprite_sheet,(SDL_Rect){width/2-32,height-70,64,32});
     SDL_Rect pos = {5,5,32,32};
     for(int i = 0; i<11;i++){
@@ -215,6 +234,7 @@ void Window::update_scene(){
 void Window::draw_enemys(){
     if(dying_enemy) dying_enemy->draw();
     player->draw();
+    if(test_square) test_square->draw();
     if(player_bullet) player_bullet->draw();
     for(auto entity: enemys){
         entity->redraw();
